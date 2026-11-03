@@ -65,9 +65,9 @@ const isRateLimit = (e) => {
 // A single contract read with retries. Studionet allows roughly
 // 30 reads/minute, so a burst past that fails with -32029; waiting out a
 // full minute refills the bucket. Other transient failures (the RPC
-// occasionally answers HTML instead of JSON) get a short retry instead
-// of failing the whole graph load.
-async function readRetry(fn, args, attempts = 3) {
+// occasionally answers HTML instead of JSON) get short retries too: a
+// brief outage must not fail a 37-claim load that is otherwise fine.
+async function readRetry(fn, args, attempts = 5) {
   let lastErr = null;
   for (let a = 0; a < attempts; a++) {
     try {
@@ -78,12 +78,18 @@ async function readRetry(fn, args, attempts = 3) {
       });
     } catch (e) {
       lastErr = e;
-      if (a < attempts - 1) await sleep(isRateLimit(e) ? 65000 : 3000);
+      if (a < attempts - 1) await sleep(isRateLimit(e) ? 65000 : 5000);
       else throw e;
     }
   }
   throw lastErr;
 }
+
+// Claims already fetched for the current contract. A reload after a
+// partial load resumes from here instead of re-burning the read budget
+// on claims it already has.
+let claimCache = new Map();
+let cacheContract = null;
 
 let loadGen = 0;
 let loadInProgress = false;
@@ -221,6 +227,10 @@ function rebuildGraphFromClaims(claims) {
 async function loadGraph() {
   const gen = ++loadGen;
   loadInProgress = true;
+  if (cacheContract !== contractAddress) {
+    claimCache = new Map();
+    cacheContract = contractAddress;
+  }
   $("graphLoading").hidden = false;
   $("graphEmpty").hidden = true;
   hideProgress();
@@ -248,15 +258,19 @@ async function loadGraph() {
     const claims = [];
     let failed = false;
     const fetchClaim = async (i) => {
+      if (claimCache.has(i)) return claimCache.get(i);
       const id = await readRetry("get_claim_id", [i]);
       if (!id) return null;
       const raw = await readRetry("get_claim", [id]);
       if (!raw) return null;
+      let parsed = null;
       try {
-        return JSON.parse(raw);
+        parsed = JSON.parse(raw);
       } catch {
-        return null;
+        parsed = null;
       }
+      if (parsed) claimCache.set(i, parsed);
+      return parsed;
     };
 
     const burst = Math.min(10, total);
@@ -284,7 +298,10 @@ async function loadGraph() {
 
     for (let i = burst; i < total; i++) {
       if (gen !== loadGen) return;
-      await sleep(2200);
+      // No wait for already-cached claims: they cost no reads, so a
+      // reload after a partial load resumes instead of re-spending the
+      // budget (and the time) on claims it already has.
+      if (!claimCache.has(i)) await sleep(2200);
       if (gen !== loadGen) return;
       try {
         const c = await fetchClaim(i);
@@ -304,9 +321,14 @@ async function loadGraph() {
     buildSim();
     $("graphLoading").hidden = true;
     $("graphEmpty").hidden = claims.length > 0;
-    hideProgress();
     loadInProgress = false;
-    if (failed) setStatusKey("graphPartial", "err");
+    if (failed) {
+      // Keep the progress counter visible: it shows how far the load
+      // got, and Reload resumes from the cache instead of restarting.
+      setStatusKey("graphPartial", "err");
+    } else {
+      hideProgress();
+    }
   } catch (e) {
     console.error(e);
     if (gen !== loadGen) return;
@@ -344,6 +366,11 @@ function escapeHtml(s) {
 function buildSim() {
   const W = 900;
   const H = 560;
+  // Preserve the user's selection across rebuilds: background loads
+  // rebuild the graph as new claims arrive, and resetting the selection
+  // each time made clicks look dead (the panel snapped back to the
+  // placeholder right after a successful click).
+  const prevSelectedId = selected ? selected.id : null;
   nodes = [];
   edges = [];
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -379,8 +406,19 @@ function buildSim() {
     const b = byId.get(`skill:${c.skill_key}`);
     if (a && b) edges.push({ a, b, claim: c });
   }
-  selected = null;
-  renderDetail(null);
+  if (prevSelectedId) {
+    const kept = nodes.find((n) => n.id === prevSelectedId);
+    if (kept) {
+      selected = kept;
+      renderDetail(kept);
+    } else {
+      selected = null;
+      renderDetail(null);
+    }
+  } else {
+    selected = null;
+    renderDetail(null);
+  }
   drawGraph();
   if (!reduced) startSim();
 }

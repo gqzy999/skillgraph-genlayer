@@ -159,3 +159,27 @@ the Top 10 leaderboard because the contract's leaderboard sorts by
 (-weight, skill_key) and 32 weight-0 cap skills sort before it
 alphabetically; tiny-skill renders on the graph with weight 0, which
 is the correct state.
+
+## Third frontend fix (live-browser re-check, 2026-11-04)
+
+The second re-check (fresh tab, cache-busted) confirmed the graph
+renders with correct weights, but found two residual issues, both
+frontend-only (contract untouched, no redeploy):
+
+1. Background load stalled around 13/37 claims with the "partially
+   loaded" note in two separate sessions, while the same indices read
+   fine from an independent client (no data problem). The load burns
+   ~22 reads for phase 1 + burst, so the ~30/minute budget runs out
+   mid-background-load, and retries alone could not reliably recover
+   inside one page session. Fix: claims are now cached per contract,
+   so Reload resumes from the cache instead of re-spending reads;
+   retries cover all transient read errors (65s for rate limits, 5s
+   for others, up to 5 attempts); the progress counter stays visible
+   on a partial load so the reviewer sees how far it got.
+2. Clicking a node never updated the detail panel. Cause: every
+   background rebuild reset `selected` to null and re-rendered the
+   placeholder, wiping a click that had actually worked. (The
+   pointerup selection from the second fix was correct but its result
+   was discarded by the next rebuild.) Fix: buildSim now preserves the
+   selected node across rebuilds (matched by id) and re-renders its
+   detail instead of clearing it.
