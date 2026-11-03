@@ -132,3 +132,30 @@ Verified after the fix: production build passes, bundle contains the
 deployed contract address, i18n 58/58 with 0 missing, no "Install
 MetaMask" text. A second live-browser render check is required before
 any live-verified claim.
+
+## Second frontend fix (live-browser re-check, 2026-11-04)
+
+The fresh-tab re-check confirmed the first fix (progress counter, top-2
+leaderboard, rendered graph, no overlap, no red error) but found two
+residual issues, both frontend-only (contract untouched, no redeploy):
+
+1. Background load stalled at ~13/37 with the "partially loaded" note.
+   Cause: the read retry only retried rate-limit errors; any other
+   transient failure (e.g. the RPC occasionally answering HTML instead
+   of JSON) failed the whole enumeration immediately. Fix: retries now
+   cover all read errors (65s wait for rate limits, 3s for others,
+   up to 3 attempts per read).
+2. Clicking a graph node never updated the detail panel. Cause: the
+   simulation re-renders the SVG every frame, so a node can drift out
+   from under the pointer between press and release and the click
+   misses; pressing also teleported the node to the pointer, jerking
+   it. Fix: selection is now decided on window pointerup from the
+   recorded pressed node (press without drag = click, even if the node
+   moved), the teleport on press is removed, and the per-element click
+   handler is gone.
+
+Not a bug (browser expectation corrected): tiny-skill is absent from
+the Top 10 leaderboard because the contract's leaderboard sorts by
+(-weight, skill_key) and 32 weight-0 cap skills sort before it
+alphabetically; tiny-skill renders on the graph with weight 0, which
+is the correct state.

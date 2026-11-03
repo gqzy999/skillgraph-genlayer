@@ -62,9 +62,11 @@ const isRateLimit = (e) => {
   const s = String(e?.message || e || "");
   return s.includes("32029") || /rate limit|too many requests/i.test(s);
 };
-// A single contract read with rate-limit retries. Studionet allows roughly
+// A single contract read with retries. Studionet allows roughly
 // 30 reads/minute, so a burst past that fails with -32029; waiting out a
-// full minute refills the bucket.
+// full minute refills the bucket. Other transient failures (the RPC
+// occasionally answers HTML instead of JSON) get a short retry instead
+// of failing the whole graph load.
 async function readRetry(fn, args, attempts = 3) {
   let lastErr = null;
   for (let a = 0; a < attempts; a++) {
@@ -76,7 +78,7 @@ async function readRetry(fn, args, attempts = 3) {
       });
     } catch (e) {
       lastErr = e;
-      if (isRateLimit(e) && a < attempts - 1) await sleep(65000);
+      if (a < attempts - 1) await sleep(isRateLimit(e) ? 65000 : 3000);
       else throw e;
     }
   }
@@ -501,17 +503,13 @@ function drawGraph() {
     g.addEventListener("pointerdown", (ev) => {
       dragNode = n;
       downPos = { x: ev.clientX, y: ev.clientY, moved: false };
-      const pt = svgPoint(ev);
-      n.x = pt.x;
-      n.y = pt.y;
       if (!simRunning) startSim();
     });
-    g.addEventListener("click", () => {
-      if (downPos && downPos.moved) return;
-      selected = n;
-      renderDetail(n);
-      drawGraph();
-    });
+    // No per-element click handler: the simulation re-renders the SVG
+    // every frame, so a node can drift out from under the pointer between
+    // press and release and a click would miss. Selection is decided on
+    // window pointerup from the recorded pressed node instead (see
+    // initEvents), which works even if the node moved.
   });
 }
 
@@ -706,6 +704,14 @@ function initEvents() {
     dragNode.y = pt.y;
   });
   window.addEventListener("pointerup", () => {
+    // A press on a node that did not move past the drag threshold is a
+    // click: select the node that was pressed, not whatever happens to
+    // sit under the pointer now (the simulation may have moved it).
+    if (dragNode && downPos && !downPos.moved) {
+      selected = dragNode;
+      renderDetail(dragNode);
+      drawGraph();
+    }
     dragNode = null;
     downPos = null;
   });
