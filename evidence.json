@@ -1,0 +1,420 @@
+{
+  "network": "studionet",
+  "chainId": 61999,
+  "contractAddress": "0x0a0c2a3e40fc98d33F93db6157A37948265eaa32",
+  "deployTx": "0x859eeb335d8d1453356a8e33028491eda6ba98ddd499499896b5111e70c58ca6",
+  "sourceSha256": "962d81578fc0ae56330aec09029b8761abe3604a29fce56f3fdb690ebd4fa64b",
+  "steps": [
+    {
+      "label": "deploy",
+      "hash": "0x859eeb335d8d1453356a8e33028491eda6ba98ddd499499896b5111e70c58ca6",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-A-documentation",
+      "hash": "0xa268b6738f7482e02142c5bca5807dfd9e0137abebbc6b6417994cd37a5e651d",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "endorse-A",
+      "hash": "0x7ae4b7383aca7ec416c0cf1462c611801d52f165854f07f475ec49226802b4f2",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-B-quantum",
+      "hash": "0xb2443ecf3d2dcdce8bce5e60d4f04e325f0c0246d7efdc91180b5d534a58ff20",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "endorse-B",
+      "hash": "0xfc44100eef7c794bddbe26de4eb2772fc1cad139b77e8886330f08ccd8605ff9",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-C-tiny",
+      "hash": "0xd26eb6b557326aa0231c26b68c26f6e13241effae313cd2f8a58e28fbd7e8381",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "endorse-C",
+      "hash": "0x6b7b7d7664bb3aef3b3261f7175fa4e8e9084d4044365a134bdb33ce43c1ea56",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-D-unreachable",
+      "hash": "0x092827912e6936a4addfb0cde6e5d4ddc775d81d23f1f496eb87be654a373a54",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "endorse-D-unreachable",
+      "hash": "0x5c8378c62237d1ac5672a9e0398ebed97fdb34fc48fefc7363dfd249de214ddb",
+      "executionResult": "ERROR",
+      "note": ""
+    },
+    {
+      "label": "claim-E-duplicate",
+      "hash": "0x97b1e84c167a51a9a11369e036006ed9c0cd5436d2e5972f0a90e57433cd6b56",
+      "executionResult": "ERROR",
+      "note": ""
+    },
+    {
+      "label": "claim-F-same-skill-other-claimer",
+      "hash": "0x9b8b8a813613e65415d6d3760b9857af35a401831d419718fa866dea73c7ea1d",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-0",
+      "hash": "0x3cedf7250487b5eccb298d492c9eda2b2b7d26e80df437d3be2eaf7b6c940122",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-1",
+      "hash": "0x00c5fd72917c2aa4c182cbb78e1049ee5590465a261cd3ea3e41b79ccf1d0bfa",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-2",
+      "hash": "0x9faa1c43fa05ff6a9456c21afd5297f23bd380a46ea7369c8fa7826aa16e7c52",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-3",
+      "hash": "0x7579e7ed2413e9c2e2c80e0a989072fca07d933ba7be95cc1f1a48c6515a591a",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-4",
+      "hash": "0xc2e51c4c7f953c12a3e24601c5b345254b7a59ea9fa230dc0c7b255eff5581b2",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-5",
+      "hash": "0x9ba998b778f7e2f09e08e73e7c2fcb9b6560df9d12bd2fd838dd890d6e8d483c",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-6",
+      "hash": "0x39762e6758129bb53b7ae882d93d6bbf0cc5bde4b6abb4d8f4a382f87e74ee42",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-7",
+      "hash": "0xafd541f74e69c8eb8d4289eee99a123fcb374129ba0871014775c2844d424521",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-8",
+      "hash": "0xac37ddb452699b15080316b75c033c2de4b581b85bc4c7ff24eb60da8b49d9bd",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-9",
+      "hash": "0x28287b45f2832c8c83454ac7d4890e7c27a2551c3ebc8f4baf7a30a2a6bcd236",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-10",
+      "hash": "0xe5f9c793bc626eeedb9b717f996362fcbff5344a1616ffed2a61a29c58b1e7e9",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-11",
+      "hash": "0x990e9b49b2d9aeb60a448a9074efef41e7ee39a428570a8bfae0ab03b969f757",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-12",
+      "hash": "0xade825569bf9cae6abfe99cf3bd41fc5cb50a06f957013a972dc778e34caf6aa",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-13",
+      "hash": "0x0f153e7744a44820c1697ba4731f3fc323e1380f144f2835c296b9549a9c075d",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-14",
+      "hash": "0xc1680a1ae0f69f16b6dce018e34c539d136c425e0b33802f540cf5a81db6fa9d",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-15",
+      "hash": "0xc1607910a1655d044cbc5681a7f20fe7341bc5e8a75c638b1e5f6e4c5642803a",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-16",
+      "hash": "0x9e00347d637d0501d7f6f4653971b933a20c4c080bc2a7a2a00b233b0bd2c2d3",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-17",
+      "hash": "0xecbf605df854fb77a91e857f32d371d35e51090a1408af2122eeda2159c78cf8",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-18",
+      "hash": "0xc1e29aa757f9d97d770c79bc1125a80aa599205994ef2f27f33153202270aff7",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-19",
+      "hash": "0xf219bcfa9fa95678ac1bc1707ea6d95606be6ff785492a9b898f790fd355bd4d",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-20",
+      "hash": "0x5538c408fa7d376d3cbf7b4ad8460f5411dd2076fc5b827c22e61eb782bc1983",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-21",
+      "hash": "0x0bc13dc7c5aa428c4ebe795c6c78c75dcdedcb45435e9e24e15cfedd9ce51c70",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-22",
+      "hash": "0x221219236967dcdfafeaa3172fda98c7540d2d38f1edfaebdf4866be266068a5",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-23",
+      "hash": "0xef090ebb162e703e73ca93413ba3e94bc07ce944223249fdd1067e66e0675cdd",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-24",
+      "hash": "0x7343689e8575c0096a8d95c962f343ce8c399b645ef987c2db4304921ed907f7",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-25",
+      "hash": "0xc14d218ae731f613081e4d7420dd6aacaecb511c8978418c42263a52cd6ccac7",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-26",
+      "hash": "0xafc1fda385feddb4ee847a0ed4246d6116be508984458d3e0387fbeddeb67cc6",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-27",
+      "hash": "0xdacfaaafbfddacbaf9de9cd2ec7c5d5b96849ce256d0379df8601d378cee7d96",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-28",
+      "hash": "0x6d18a144aea0980f40b81e407c252dce2309884fbb6e5d3c070b4e59bd25ea77",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-29",
+      "hash": "0x9bb22a5e6aa4d494167d4b648aecaa6df45ff92522e336f2509b4e8c375cc674",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-30",
+      "hash": "0xf41efad934f186ea107d9334844b280b70fde038b54629662e14c3b4252cce73",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-31",
+      "hash": "0x722b668a201c2fb3b2c1e34dfcbefc09d9acf7a7bff90346272f5ed817160a90",
+      "executionResult": "SUCCESS",
+      "note": ""
+    },
+    {
+      "label": "claim-cap-32-rejected",
+      "hash": "0x12c3eac74499888289ec806f0e688358e1e2cab10be1b960a90c7a4ccc39e36a",
+      "executionResult": "ERROR",
+      "note": ""
+    },
+    {
+      "label": "endorse-F",
+      "hash": "0x0f39cee8e28ca3ff2f7ef4fd9cb14a3606f5d55d34d341fbf3401eed1dbaf60a",
+      "executionResult": "SUCCESS",
+      "note": ""
+    }
+  ],
+  "counts": {
+    "claim_count": 37,
+    "skill_count": 36,
+    "claimer_count": 3,
+    "assessed_count": 4,
+    "total_weight": 5
+  },
+  "leaderboard": {
+    "top_skills": [
+      {
+        "skill": "documentation",
+        "weight": 4,
+        "claim_count": 2,
+        "endorsed_count": 2
+      },
+      {
+        "skill": "quantum-computing",
+        "weight": 1,
+        "claim_count": 1,
+        "endorsed_count": 0
+      },
+      {
+        "skill": "cap-skill-0",
+        "weight": 0,
+        "claim_count": 1,
+        "endorsed_count": 0
+      },
+      {
+        "skill": "cap-skill-1",
+        "weight": 0,
+        "claim_count": 1,
+        "endorsed_count": 0
+      },
+      {
+        "skill": "cap-skill-10",
+        "weight": 0,
+        "claim_count": 1,
+        "endorsed_count": 0
+      },
+      {
+        "skill": "cap-skill-11",
+        "weight": 0,
+        "claim_count": 1,
+        "endorsed_count": 0
+      },
+      {
+        "skill": "cap-skill-12",
+        "weight": 0,
+        "claim_count": 1,
+        "endorsed_count": 0
+      },
+      {
+        "skill": "cap-skill-13",
+        "weight": 0,
+        "claim_count": 1,
+        "endorsed_count": 0
+      },
+      {
+        "skill": "cap-skill-14",
+        "weight": 0,
+        "claim_count": 1,
+        "endorsed_count": 0
+      },
+      {
+        "skill": "cap-skill-15",
+        "weight": 0,
+        "claim_count": 1,
+        "endorsed_count": 0
+      }
+    ],
+    "top_claimers": [
+      {
+        "claimer": "0x8f23aae90a95148deb31b60e9e2676d0cdac027b",
+        "score": 3,
+        "claim_count": 2,
+        "endorsed_count": 1
+      },
+      {
+        "claimer": "0x0822a4bd74aa279d5a5f8117e6e46cde7fd68eaf",
+        "score": 2,
+        "claim_count": 3,
+        "endorsed_count": 1
+      },
+      {
+        "claimer": "0x5ed83f0376b835328bde65fc2364d7b3b972a8d1",
+        "score": 0,
+        "claim_count": 32,
+        "endorsed_count": 0
+      }
+    ]
+  },
+  "verified": true,
+  "prior_attempts": [
+    {
+      "label": "deploy without account",
+      "result": "client-side error: No account set; no transaction sent; no contract created"
+    },
+    {
+      "label": "plain class + @allow_storage",
+      "deployTx": "0x4237ba16048f53f6d9fde206085ca35326e44cf47d9477680293d5d1c0233c1a",
+      "executionResult": "ERROR",
+      "address": "0x2CfF2070b9a9B8bc124Aa1f5A181d4317f6149C4",
+      "note": "contract_error exit_code 1; address holds no functional contract"
+    },
+    {
+      "label": "allow_storage compatibility shim, plain class",
+      "deployTx": "0x408b07d86c4894912ea987361380c1574feaa9bb077588fa8ee274e93af12f95",
+      "executionResult": "ERROR",
+      "address": "0x5bFD04de41164F9f1EC3990cB160Ba723F4013Dc",
+      "note": "contract_error exit_code 1; address holds no functional contract"
+    },
+    {
+      "label": "minimal probe, plain class, old runner",
+      "deployTx": "0x9c1aa7567651bfa19bc83c51c108990afe6d58919bc58bd543630945979db6d5",
+      "executionResult": "ERROR",
+      "address": "0xAf90E15Ba916207c368d4Cfd0118c0f2c6d84768",
+      "note": "diagnostic probe only; address holds no functional contract"
+    },
+    {
+      "label": "minimal probe, plain class, new runner",
+      "deployTx": "0x993eaef73d406e53fef3ede01f6fc88bbdd5338d7d03cf14236f9df901a2d366",
+      "executionResult": "ERROR",
+      "address": "0xE0D9836acbBb0b64A17C3c62B12Fe4db9F6B9268",
+      "note": "diagnostic probe only; address holds no functional contract"
+    },
+    {
+      "label": "minimal probe, plain class, funded 1 GEN",
+      "deployTx": "0xb1675a222671f141451497834b4a99fb1f55971ad5d09364ce2515d72926f9ba",
+      "executionResult": "ERROR",
+      "address": "0x2Fa1Dfb4FF323044ebEF3C887F53834B1c84Bed0",
+      "note": "funding ruled out as the cause; address holds no functional contract"
+    },
+    {
+      "label": "minimal probe, plain class + @allow_storage, new runner",
+      "deployTx": "0xb4ae42163bebd1a6b6a87095cd32a5d8b06de61a8f3fdcbc994f9dc9a5b21a1c",
+      "executionResult": "ERROR",
+      "address": "0xf81D6DAd0d1C3Ab3c55fD58590985687f337243C",
+      "note": "diagnostic probe only; address holds no functional contract"
+    }
+  ],
+  "root_cause_fix": "Studio runner raised no contract defined for plain classes; the contract class must subclass gl.Contract. Applied class SkillGraph(gl.Contract) (allow_storage shim retained for newer local VMs). Schema check then passed and deployment succeeded."
+}

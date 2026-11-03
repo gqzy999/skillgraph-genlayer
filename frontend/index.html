@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SkillGraph — the endorsement mycelium</title>
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"></div>
+        <div>
+          <div class="brand-name" data-i18n="brand">SKILLGRAPH</div>
+          <div class="brand-sub" data-i18n="tagline">The endorsement mycelium.</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <span class="chain-note" data-i18n="chainNote">Stable Studionet · 61999 · test network</span>
+        <div class="wallet-box">
+          <button id="walletBtn" class="btn small" data-i18n="walletConnect">Connect wallet</button>
+          <button id="ephemeralBtn" class="btn small ghost" data-i18n="walletEphemeral">Reviewer test account</button>
+          <div id="walletState" class="wallet-state" data-i18n="walletNone">No wallet connected. Reading is open to everyone.</div>
+        </div>
+        <div class="lang-switch">
+          <button id="langEn" class="lang-btn active">EN</button>
+          <button id="langZh" class="lang-btn">中文</button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="graph-section">
+        <div class="graph-head">
+          <div>
+            <p class="eyebrow" data-i18n="graphEyebrow">LIVE GRAPH · FROM THE CHAIN</p>
+            <h1 data-i18n="graphTitle">Who vouches for what.</h1>
+            <p class="lede" data-i18n="graphLede">Skills are the big knots. People are the small ones. A line is a claim; its thickness is the endorsement weight it earned. Drag any knot. Click one to see its story.</p>
+          </div>
+          <div class="meters">
+            <div class="meter"><span id="meterClaims">–</span><label data-i18n="meterClaims">claims</label></div>
+            <div class="meter"><span id="meterSkills">–</span><label data-i18n="meterSkills">skills</label></div>
+            <div class="meter"><span id="meterWeight">–</span><label data-i18n="meterWeight">total weight</label></div>
+          </div>
+        </div>
+
+        <div class="graph-tools">
+          <input id="skillFilter" type="text" placeholder="Filter by skill…" data-i18n-placeholder="filterPlaceholder" />
+          <button id="resetViewBtn" class="btn small ghost" data-i18n="resetView">Reset view</button>
+          <button id="reloadBtn" class="btn small ghost" data-i18n="reload">Reload graph</button>
+        </div>
+
+        <div class="graph-layout">
+          <div class="canvas-wrap">
+            <svg id="graphSvg" viewBox="0 0 900 560" role="img" aria-label="Endorsement graph"></svg>
+            <div id="graphEmpty" class="graph-empty" hidden data-i18n="graphEmpty">No claims yet. Be the first to plant one.</div>
+            <div id="graphLoading" class="graph-empty" data-i18n="graphLoading">Growing the mycelium…</div>
+          </div>
+          <aside class="detail-panel" aria-live="polite">
+            <p class="eyebrow" data-i18n="detailEyebrow">SELECTED</p>
+            <div id="detailBody">
+              <p class="detail-hint" data-i18n="detailHint">Click any knot in the graph to inspect it. Click a skill to see everyone who claimed it; click a person to see everything they claimed.</p>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="panels">
+        <div class="panel">
+          <p class="eyebrow" data-i18n="claimEyebrow">PLANT A CLAIM</p>
+          <h2 data-i18n="claimTitle">Claim a skill</h2>
+          <label data-i18n="claimSkillLabel">Skill</label>
+          <input id="claimSkill" type="text" maxlength="64" placeholder="e.g. Python" />
+          <label data-i18n="claimUrlLabel">Evidence URL</label>
+          <input id="claimUrl" type="url" placeholder="https://…" />
+          <label data-i18n="claimNoteLabel">Note</label>
+          <input id="claimNote" type="text" maxlength="500" placeholder="What did you do?" data-i18n-placeholder="claimNotePlaceholder" />
+          <button id="claimBtn" class="btn" data-i18n="claimSubmit">Claim skill</button>
+          <p class="form-note" data-i18n="claimNote2">Validators fetch the evidence URL and judge it: clearly supporting → ENDORSED (+2), partial → WEAK (+1), no support → REJECTED (+0). Unreachable evidence stays pending and can be retried.</p>
+        </div>
+
+        <div class="panel">
+          <p class="eyebrow" data-i18n="leadersEyebrow">LEADERS</p>
+          <h2 data-i18n="leadersTitle">Strongest knots</h2>
+          <h3 data-i18n="leadersSkills">Top skills</h3>
+          <ol id="topSkills" class="leader-list"></ol>
+          <h3 data-i18n="leadersPeople">Top people</h3>
+          <ol id="topClaimers" class="leader-list"></ol>
+          <p class="form-note" data-i18n="leadersNote">Weights move only when validators agree on a verdict. Nothing here is a stored opinion; it is the running total of agreed endorsements.</p>
+        </div>
+      </section>
+
+      <section class="trust">
+        <div class="contract-row">
+          <label data-i18n="contractLabel">Contract</label>
+          <input id="contractInput" type="text" spellcheck="false" />
+          <button id="loadContractBtn" class="btn small" data-i18n="contractLoad">Load</button>
+          <a id="explorerLink" class="btn small ghost" target="_blank" rel="noreferrer" data-i18n="contractExplorer">Explorer ↗</a>
+        </div>
+        <div id="txStatus" class="tx-status" aria-live="polite"></div>
+        <details class="limits">
+          <summary data-i18n="limitsTitle">How this works, and its limits</summary>
+          <p data-i18n="limitsText">Endorsement weight is whole points only: ENDORSED +2, WEAK +1, REJECTED +0. A claim can be endorsed once; a second attempt fails. Each account may hold at most 32 claims, and may claim the same skill only once (case-insensitive). The verdict judges the fetched evidence page against the claimed skill only; it does not verify identity, employment, or off-chain work. Evidence pages can change after endorsement; the weight stays as agreed. No funds move in this contract.</p>
+        </details>
+      </section>
+    </main>
+
+    <footer>
+      <p data-i18n="footer">SkillGraph runs on Stable Studionet (chain 61999). Skills and claims are read from the chain; nothing here is demo data.</p>
+    </footer>
+
+    <div id="toast" class="toast" hidden></div>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
