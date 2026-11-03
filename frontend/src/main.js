@@ -43,6 +43,62 @@ function setStatus(msg, kind = "") {
   el.className = `tx-status ${kind}`;
 }
 
+// Status messages are keyed so a language switch can re-render them
+// instead of leaving a stale translation on screen.
+let lastStatus = null;
+function setStatusKey(key, kind = "", extra = "") {
+  lastStatus = key ? { key, kind, extra } : null;
+  setStatus(key ? t(key) + extra : "", kind);
+}
+
+function renderLastStatus() {
+  if (lastStatus) {
+    setStatus(t(lastStatus.key) + lastStatus.extra, lastStatus.kind);
+  }
+}
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const isRateLimit = (e) => {
+  const s = String(e?.message || e || "");
+  return s.includes("32029") || /rate limit|too many requests/i.test(s);
+};
+// A single contract read with rate-limit retries. Studionet allows roughly
+// 30 reads/minute, so a burst past that fails with -32029; waiting out a
+// full minute refills the bucket.
+async function readRetry(fn, args, attempts = 3) {
+  let lastErr = null;
+  for (let a = 0; a < attempts; a++) {
+    try {
+      return await readClient.readContract({
+        address: contractAddress,
+        functionName: fn,
+        args,
+      });
+    } catch (e) {
+      lastErr = e;
+      if (isRateLimit(e) && a < attempts - 1) await sleep(65000);
+      else throw e;
+    }
+  }
+  throw lastErr;
+}
+
+let loadGen = 0;
+let loadInProgress = false;
+let lastProgress = null;
+function updateProgress(loaded, total) {
+  lastProgress = { loaded, total };
+  const el = $("graphProgress");
+  if (!el) return;
+  el.hidden = false;
+  el.textContent = `${t("graphProgress")} ${loaded}/${total}`;
+}
+function hideProgress() {
+  lastProgress = null;
+  const el = $("graphProgress");
+  if (el) el.hidden = true;
+}
+
 function applyLang() {
   document.querySelectorAll("[data-i18n]").forEach((el) => {
     el.textContent = t(el.dataset.i18n);
@@ -53,6 +109,10 @@ function applyLang() {
   $("langEn").classList.toggle("active", lang === "en");
   $("langZh").classList.toggle("active", lang === "zh");
   document.documentElement.lang = lang;
+  renderLastStatus();
+  if (loadInProgress && lastProgress) {
+    updateProgress(lastProgress.loaded, lastProgress.total);
+  }
 }
 
 function renderWalletState() {
@@ -114,78 +174,161 @@ async function read(fn, args = []) {
   }
 }
 
+function rebuildGraphFromClaims(claims) {
+  const people = new Map();
+  const skillMap = new Map();
+  for (const c of claims) {
+    if (!people.has(c.claimer)) {
+      people.set(c.claimer, { claimer: c.claimer, score: 0, claims: [] });
+    }
+    const p = people.get(c.claimer);
+    p.claims.push(c);
+    p.score += c.weight || 0;
+    const key = c.skill_key || (c.skill || "").toLowerCase();
+    if (!skillMap.has(key)) {
+      skillMap.set(key, {
+        skill_key: key,
+        skill: c.skill || key,
+        weight: 0,
+        claim_count: 0,
+        endorsed_count: 0,
+        weak_count: 0,
+        rejected_count: 0,
+        pending_count: 0,
+      });
+    }
+    const s = skillMap.get(key);
+    s.weight += c.weight || 0;
+    s.claim_count += 1;
+    if (c.status === "ENDORSED") s.endorsed_count += 1;
+    else if (c.status === "WEAK") s.weak_count += 1;
+    else if (c.status === "REJECTED") s.rejected_count += 1;
+    else s.pending_count += 1;
+  }
+  graph = { skills: [...skillMap.values()], claims, people };
+}
+
+// Loads the graph in phases so the page stays inside Studionet's read
+// rate limit (~30 reads/minute). Phase 1 (2 reads) renders meters and the
+// leaderboard immediately. Phase 2a bursts the first 10 claims (20 reads,
+// still inside the budget) so the core graph appears within seconds.
+// Phase 2b trickles the remaining claims in the background at one read
+// per 2.2s, rebuilding the graph as more endorsements arrive. The old
+// code fired ~148 reads back-to-back, tripped the limit, and showed an
+// empty graph with a red error even though the chain data was fine.
 async function loadGraph() {
+  const gen = ++loadGen;
+  loadInProgress = true;
   $("graphLoading").hidden = false;
   $("graphEmpty").hidden = true;
+  hideProgress();
+  setStatusKey(null);
   try {
     const counts = await read("get_counts", []);
     if (!counts) throw new Error("empty counts");
+    if (gen !== loadGen) return;
     $("meterClaims").textContent = counts.claim_count;
     $("meterSkills").textContent = counts.skill_count;
     $("meterWeight").textContent = counts.total_weight;
 
+    const board = await read("get_leaderboard", []);
+    if (gen !== loadGen) return;
+    if (board) renderLeaders(board);
+
+    const total = counts.claim_count;
+    if (total === 0) {
+      $("graphLoading").hidden = true;
+      $("graphEmpty").hidden = false;
+      loadInProgress = false;
+      return;
+    }
+
     const claims = [];
-    for (let i = 0; i < counts.claim_count; i++) {
-      const id = await readClient.readContract({
-        address: contractAddress,
-        functionName: "get_claim_id",
-        args: [i],
-      });
-      if (!id) continue;
-      const claim = await read("get_claim", [id]);
-      if (claim) claims.push(claim);
-    }
-    const skills = [];
-    for (let i = 0; i < counts.skill_count; i++) {
-      const key = await readClient.readContract({
-        address: contractAddress,
-        functionName: "get_skill_id",
-        args: [i],
-      });
-      if (!key) continue;
-      const node = await read("get_skill", [key]);
-      if (node) skills.push(node);
-    }
-    const people = new Map();
-    for (const c of claims) {
-      if (!people.has(c.claimer)) {
-        people.set(c.claimer, { claimer: c.claimer, score: 0, claims: [] });
+    let failed = false;
+    const fetchClaim = async (i) => {
+      const id = await readRetry("get_claim_id", [i]);
+      if (!id) return null;
+      const raw = await readRetry("get_claim", [id]);
+      if (!raw) return null;
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return null;
       }
-      const p = people.get(c.claimer);
-      p.claims.push(c);
-      p.score += c.weight || 0;
+    };
+
+    const burst = Math.min(10, total);
+    for (let i = 0; i < burst; i++) {
+      if (gen !== loadGen) return;
+      try {
+        const c = await fetchClaim(i);
+        if (c) claims.push(c);
+      } catch (e) {
+        console.error(e);
+        failed = true;
+        break;
+      }
+      updateProgress(claims.length, total);
     }
-    graph = { skills, claims, people };
+    rebuildGraphFromClaims(claims);
     buildSim();
-    renderLeaders();
+    if (claims.length === 0) {
+      $("graphLoading").hidden = true;
+      setStatusKey("errLoad", "err");
+      loadInProgress = false;
+      hideProgress();
+      return;
+    }
+
+    for (let i = burst; i < total; i++) {
+      if (gen !== loadGen) return;
+      await sleep(2200);
+      if (gen !== loadGen) return;
+      try {
+        const c = await fetchClaim(i);
+        if (c) claims.push(c);
+      } catch (e) {
+        console.error(e);
+        failed = true;
+        break;
+      }
+      updateProgress(claims.length, total);
+      if ((i - burst + 1) % 10 === 0) {
+        rebuildGraphFromClaims(claims);
+        buildSim();
+      }
+    }
+    rebuildGraphFromClaims(claims);
+    buildSim();
     $("graphLoading").hidden = true;
     $("graphEmpty").hidden = claims.length > 0;
+    hideProgress();
+    loadInProgress = false;
+    if (failed) setStatusKey("graphPartial", "err");
   } catch (e) {
-    $("graphLoading").hidden = true;
-    setStatus(t("errLoad"), "err");
     console.error(e);
+    if (gen !== loadGen) return;
+    $("graphLoading").hidden = true;
+    hideProgress();
+    loadInProgress = false;
+    setStatusKey("errLoad", "err");
   }
 }
 
-async function renderLeaders() {
-  try {
-    const board = await read("get_leaderboard", []);
-    if (!board) return;
-    $("topSkills").innerHTML = board.top_skills
-      .map(
-        (s) =>
-          `<li>${escapeHtml(s.skill)} <span class="w">${s.weight}</span> · ${s.endorsed_count} endorsed</li>`
-      )
-      .join("");
-    $("topClaimers").innerHTML = board.top_claimers
-      .map(
-        (c) =>
-          `<li><span class="who">${escapeHtml(c.claimer)}</span> <span class="w">${c.score}</span></li>`
-      )
-      .join("");
-  } catch (e) {
-    console.error(e);
-  }
+function renderLeaders(board) {
+  if (!board) return;
+  $("topSkills").innerHTML = board.top_skills
+    .map(
+      (s) =>
+        `<li>${escapeHtml(s.skill)} <span class="w">${s.weight}</span> · ${s.endorsed_count} endorsed</li>`
+    )
+    .join("");
+  $("topClaimers").innerHTML = board.top_claimers
+    .map(
+      (c) =>
+        `<li><span class="who">${escapeHtml(c.claimer)}</span> <span class="w">${c.score}</span></li>`
+    )
+    .join("");
 }
 
 function escapeHtml(s) {
@@ -438,7 +581,7 @@ function ensureWriter() {
 async function sendWrite(fn, args) {
   const account = ensureWriter();
   if (!account) return null;
-  setStatus(t("statusWaiting"));
+  setStatusKey("statusWaiting");
   try {
     const hash = await readClient.writeContract({
       address: contractAddress,
@@ -454,14 +597,14 @@ async function sendWrite(fn, args) {
     const result = receiptResult(receipt);
     if (result !== "SUCCESS") {
       const code = receiptError(receipt);
-      setStatus(`${t("errWrite")} (${humanError(code)})`, "err");
+      setStatusKey("errWrite", "err", ` (${humanError(code)})`);
       return null;
     }
-    setStatus(t("statusFinalized"), "ok");
+    setStatusKey("statusFinalized", "ok");
     return receipt;
   } catch (e) {
     console.error(e);
-    setStatus(t("errWrite"), "err");
+    setStatusKey("errWrite", "err");
     return null;
   }
 }
@@ -471,7 +614,7 @@ async function claimSkill() {
   const url = $("claimUrl").value.trim();
   const note = $("claimNote").value.trim();
   if (!skill || skill.length > 64 || !/^https?:\/\//.test(url)) {
-    setStatus(t("errInput"), "err");
+    setStatusKey("errInput", "err");
     return;
   }
   const receipt = await sendWrite("claim_skill", [skill, url, note]);
@@ -519,13 +662,13 @@ function initEvents() {
     try {
       const addr = await connectInjected();
       if (!addr) {
-        setStatus(t("errNoWallet"), "err");
+        setStatusKey("errNoWallet", "err");
         return;
       }
-      setStatus("", "");
+      setStatusKey(null);
     } catch (e) {
       console.error(e);
-      setStatus(t("errConnect"), "err");
+      setStatusKey("errConnect", "err");
     }
     renderWalletState();
   });

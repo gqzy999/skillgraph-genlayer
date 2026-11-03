@@ -110,6 +110,13 @@ h3 { margin: 16px 0 8px; font-size: 15px; color: var(--muted); }
   position: absolute; inset: 0; display: grid; place-items: center;
   color: var(--muted); padding: 20px; text-align: center; pointer-events: none;
 }
+/* The author display above beats the UA [hidden] rule, so without this
+   the overlays never hide and stack on top of each other. */
+[hidden] { display: none !important; }
+.graph-progress {
+  position: absolute; left: 0; right: 0; bottom: 10px; text-align: center;
+  color: var(--muted); font-size: 12px; pointer-events: none;
+}
 .detail-panel {
   background: var(--panel); border: 1px solid var(--line);
   border-radius: var(--radius); padding: 16px; position: sticky; top: 12px;

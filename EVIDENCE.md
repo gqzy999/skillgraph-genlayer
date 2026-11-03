@@ -102,3 +102,33 @@ connect + read and an in-browser reviewer test account for writes
 (key stays in the browser; transactions are attributed to the test
 account, never presented as wallet-signed). The live site deployment and
 a real-browser render check are separate steps after this evidence.
+
+## Post-build frontend fix (live-browser finding, 2026-11-04)
+
+The first live-browser render check found the graph and leaderboard empty
+with a red "Could not load the graph" error, even though the top meters
+(37 claims / 36 skills / weight 5) loaded fine. Root causes, both in the
+frontend only (contract untouched, no redeploy):
+
+1. Rate-limit burst: the first `loadGraph` fired ~148 contract reads
+   back-to-back (counts + 37x2 claim reads + 36x2 skill reads +
+   leaderboard). Studionet allows ~30 reads/minute, so the enumeration
+   failed partway and the whole graph render was skipped. Fix: phase 1
+   renders meters + leaderboard from 2 reads immediately; phase 2a bursts
+   only the first 10 claims (20 reads, inside budget) so the core graph
+   appears within seconds; phase 2b trickles the rest at one read per
+   2.2s with 65s retries on -32029, rebuilding incrementally. Skill nodes
+   are now derived from claims (the leaderboard already carries weights),
+   so the separate skill enumeration is gone.
+2. Overlay overlap: `.graph-empty { display: grid }` (author CSS) beats
+   the UA `[hidden]` rule, so the `hidden` attribute never hid the
+   loading/empty overlays and they stacked on each other. Fix: a global
+   `[hidden] { display: none !important; }` rule.
+3. Stale status language: status messages were set as translated text,
+   so switching language left an English error on screen. Fix: statuses
+   are now keyed and re-rendered on language switch.
+
+Verified after the fix: production build passes, bundle contains the
+deployed contract address, i18n 58/58 with 0 missing, no "Install
+MetaMask" text. A second live-browser render check is required before
+any live-verified claim.
